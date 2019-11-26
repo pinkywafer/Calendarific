@@ -1,4 +1,4 @@
-# Anniversaries
+# Calendarific
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/pinkywafer/Calendarific)](https://github.com/pinkywafer/Calendarific/releases)
 ![GitHub Release Date](https://img.shields.io/github/release-date/pinkywafer/Calendarific)
 [![GitHub](https://img.shields.io/github/license/pinkywafer/Calendarific)](LICENSE)
