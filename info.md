@@ -17,36 +17,6 @@ Attributes (both are provided by the Calendarific api:
 * date:  The next date of the holiday (formatted by date_format configuration option if set)
 * description: The description of the holiday.
 
-## Table of Contents
-
-* [Installation](#installation)
-  + [Manual Installation](#manual-installation)
-  + [Installation via HACS](#installation-via-hacs)
-* [Platform Configuration](#platform-configuration)
-  + [Platform Configuration Parameters](#platform-configuration-parameters)
-* [Sensor Configuration](#sensor-configuration)
-  + [Sensor Configuration Parameters](#sensor-configuration-parameters)
-
-## Installation
-
-### MANUAL INSTALLATION
-
-1. Download the `calendarific.zip` file from the 
-   [latest release](https://github.com/pinkywafer/calendarific/releases/latest).
-2. Unpack the release and copy the `custom_components/calendarific` directory
-   into the `custom_components` directory of your Home Assistant
-   installation.
-3. Configure the `calendarific` platform
-4. Restart Home Assistant.
-5. Configure sensors either in the configuration.yaml or by using the integrations page
-
-### INSTALLATION VIA HACS
-
-1. Ensure that [HACS](https://custom-components.github.io/hacs/) is installed.
-2. Search for and install the "calendarific" integration.
-3. Configure the `calendarific` platform.
-4. Restart Home Assistant.
-5. Configure sensors either in the configuration.yaml or by using the integrations page
 
 ## Platform Configuration
 

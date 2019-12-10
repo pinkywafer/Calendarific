@@ -1,0 +1,8 @@
+  
+{
+  "name": "Calendarific",
+  "zip_release": true,
+  "filename": "calendarific.zip",
+  "domains": ["calendarific", "sensor"],
+  "iot_class": "Cloud Polling"
+}
