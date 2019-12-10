@@ -38,7 +38,7 @@ def calendarific_entries(hass: HomeAssistant):
 
 class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     "handle config flow"
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self) -> None:
         self._errors = {}
