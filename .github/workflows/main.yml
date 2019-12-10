@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: "Set version numbmer"
+        run: |
+          sed -i '/VERSION = /c\VERSION = "${{ github.ref }}"' custom_components/calendarific/const.py
+          sed -i 's|refs/heads/||' custom_components/calendarific/const.py
+          sed -i 's|refs/tags/||' custom_components/calendarific/const.py
+
+      # Pack the HACS dir as a zip and upload to the release
+      - name: ZIP Calendarific Dir
+        run: |
+          cd /home/runner/work/Calendarific/Calendarific/custom_components/calendarific
+          zip calendarific.zip -r ./
+      - name: Upload zip to release
+        uses: svenstaro/upload-release-action@v1-release
+
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /home/runner/work/Calendarific/Calendarific/custom_components/calendarific/calendarific.zip
+          asset_name: calendarific.zip
+          tag: ${{ github.ref }}
+          overwrite: true
