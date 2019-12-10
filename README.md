@@ -13,7 +13,7 @@ The 'Calendarific' component is a Home Assistant custom sensor which counts down
 State Returned:
 * The number of days remaining to the next occurance.
 
-Attributes (both are provided by the Calendarific api:
+Attributes (both are provided by the Calendarific api):
 * date:  The next date of the holiday (formatted by date_format configuration option if set)
 * description: The description of the holiday.
 
