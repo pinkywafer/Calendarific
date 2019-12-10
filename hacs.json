@@ -4,5 +4,6 @@
   "zip_release": true,
   "filename": "calendarific.zip",
   "domains": ["calendarific", "sensor"],
+  "homeassistant": "0.96.0",
   "iot_class": "Cloud Polling"
 }
