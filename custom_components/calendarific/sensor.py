@@ -1,167 +1,142 @@
-""" Calendarific Holidays sensor """
+""" Calendarific Sensor """
+from datetime import datetime, date
 import logging
-from datetime import date, datetime, timedelta
-import homeassistant.helpers.config_validation as cv
-import requests
+
 import voluptuous as vol
+
 from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import ATTR_DATE
+
+from homeassistant.const import CONF_NAME
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
-from typing import NamedTuple
 
-__version__ = '1.0.0'
+from .const import (
+    ATTRIBUTION,
+    DEFAULT_SOON,
+    DEFAULT_ICON_SOON,
+    DEFAULT_ICON_NORMAL,
+    DEFAULT_ICON_TODAY,
+    DEFAULT_DATE_FORMAT,
+    CONF_ICON_NORMAL,
+    CONF_ICON_TODAY,
+    CONF_ICON_SOON,
+    CONF_DATE_FORMAT,
+    CONF_SOON,
+    CONF_HOLIDAY,
+    DOMAIN,
+)
 
-_LOGGER = logging.getLogger(__name__)
+ATTR_DESCRIPTION = "description"
+ATTR_DATE = "date"
 
-CONF_COUNTRY = 'country'
-CONF_API_KEY = 'api_key'
-CONF_LOCALE = 'state'
-CONF_HOLIDAYS = 'holidays'
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
+    {
+        vol.Required(CONF_HOLIDAY): cv.string,
+        vol.Optional(CONF_NAME, default=''): cv.string,
+        vol.Optional(CONF_SOON, default=DEFAULT_SOON): cv.positive_int,
+        vol.Optional(CONF_ICON_NORMAL, default=DEFAULT_ICON_NORMAL): cv.icon,
+        vol.Optional(CONF_ICON_TODAY, default=DEFAULT_ICON_TODAY): cv.icon,
+        vol.Optional(CONF_ICON_SOON, default=DEFAULT_ICON_SOON): cv.icon,
+        vol.Optional(CONF_DATE_FORMAT, default=DEFAULT_DATE_FORMAT): cv.string,
+    }
+)
 
-ATTR_DESCRIPTION = 'description'
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_API_KEY, default=''): cv.string,
-    vol.Required(CONF_HOLIDAYS, default=[]): vol.All(cv.ensure_list, [cv.string]),
-    vol.Optional(CONF_LOCALE, default=''): cv.string,
-    vol.Required(CONF_COUNTRY, default='gb'): cv.string,
-})
-
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    _LOGGER.debug("Setting up Calendarific")
-
-    country = config.get(CONF_COUNTRY)
-    locale = config.get(CONF_LOCALE)
-    api_key = config.get(CONF_API_KEY)
-    requiredHolidays = config.get(CONF_HOLIDAYS)
-
-    reader = CalendarificApiReader(api_key, country, locale, requiredHolidays)
-
-    reader.update()
-
-    entities = []
-
-    for holiday in requiredHolidays:
-        entities.append(CalendarificSensor(reader, holiday))
-
-    add_entities(entities)
-
-
-DEFAULT_BASEURL = 'https://calendarific.com/api/v2/holidays?&api_key={}&country={}&year={}/json'
-
-class CalendarificApiException(Exception):
-    pass
-
-HolidayInfo = NamedTuple('HolidayInfo', [('holiday_date', date), ('holiday_name', str), ('holiday_description', str)])
-
-class CalendarificApiReader:
-
-    def __init__(self, api_key, country, locale, requiredHolidays):
-        self.country = country
-        self.locale = locale
-        self.api_key = api_key
-        self._baseurl = DEFAULT_BASEURL
-        self._requiredHolidays = requiredHolidays
-        self._lastupdated = None
-        self._holidays = []
-    
-    def get_holiday_date(self,holiday_name):
-        for holiday in self._holidays:
-            if holiday.holiday_name == holiday_name:
-                return holiday.holiday_date
-    
-    def get_holiday_description(self,holiday_name):
-        for holiday in self._holidays:
-            if holiday.holiday_name == holiday_name:
-                return holiday.holiday_description
-
-    def update(self):
-        if self._lastupdated == datetime.now().date():
-            return
-
-        self._lastupdated = datetime.now().date()
-        _LOGGER.error("Updating from Calendarific API")
-        today = date.today()
-        year = today.year
-        try:
-            response = requests.get(self._baseurl.format(self.api_key,self.country,year))
-            nextresponse = requests.get(self._baseurl.format(self.api_key,self.country,year+1))
-        except requests.exceptions.RequestException as x:
-            self._holidays = []
-            raise CalendarificApiException(
-                "Error occurred while fetching data: %r", x)
-        res = response.json()
-        hols = res['response']['holidays']
-        nextres = nextresponse.json()
-        nexthols = nextres['response']['holidays']
-
-        for holidayName in self._requiredHolidays:
-            holiday = [i for i in hols if i['name'] == holidayName]
-            holiday_name = holidayName
-            if len(holiday) > 1 and self.locale != "" :
-                holiday = [i for i in hols if (i['name'] == holidayName) and ([b for b in i['states'] if b['abbrev'] == self.locale])]
-            if len(holiday) > 0:
-                holiday_description = holiday[0]['description']
-                holiday_date = datetime.strptime(holiday[0]['date']['iso'],"%Y-%m-%d")
-                if holiday_date.date() < today:
-                    nextholiday = [i for i in nexthols if i['name'] == holidayName]
-                    if len(nextholiday) > 1 and self.locale != "":
-                        nextholiday = [i for i in nexthols if (i['name'] == holidayName) and ([b for b in i['states'] if b['abbrev'] == self.locale])]
-                    holiday_date = datetime.strptime(nextholiday[0]['date']['iso'],"%Y-%m-%d")
-            else:
-                holiday_date = datetime.strptime("2000-01-01", "%Y-%m-%d")
-                holiday_description = "Holiday NOT found"
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+    """Setup the sensor platform."""
+    if DOMAIN in hass.data:
+        reader = hass.data[DOMAIN]['apiReader']
+        async_add_entities([calendarific(config, reader)],True)  
+     
+async def async_setup_entry(hass, entry, async_add_entities):
+    """Setup sensor platform."""
+    if DOMAIN in hass.data:
+        reader = hass.data[DOMAIN]['apiReader']
+        async_add_entities(
+            [calendarific(entry.data, reader)], False,
+        )
+    return True
 
 
-
-            _LOGGER.error("done: %r", holiday_name)
-            self._holidays.append(HolidayInfo(holiday_date, holiday_name, holiday_description))
-        _LOGGER.debug("Holidays found: %r", self._holidays)
-
-class CalendarificSensor(Entity):
-
-    def __init__(self, reader, holiday):
+class calendarific(Entity):
+    def __init__(self, config, reader):
+        """Initialize the sensor."""
+        self.config = config
+        self._holiday = config.get(CONF_HOLIDAY)
+        self._name = config.get(CONF_NAME)
+        if self._name == '':
+            self._name = self._holiday
+        self._icon_normal = config.get(CONF_ICON_NORMAL)
+        self._icon_today = config.get(CONF_ICON_TODAY)
+        self._icon_soon = config.get(CONF_ICON_SOON)
+        self._soon = config.get(CONF_SOON)
+        self._date_format = config.get(CONF_DATE_FORMAT)
+        self._icon = self._icon_normal
         self._reader = reader
-        self._name = holiday
-        self._icon = "mdi:calendar-star"
-        self._date = self._reader.get_holiday_date(self._name)
-        self._description = self._reader.get_holiday_description(self._name)
-        today = date.today()
-        nextDate = self._date.date()
-        daysRemaining = (nextDate - today).days
-        if self._description == "Holiday NOT found":
-            self._state = "unavailable"
+        self._description = self._reader.get_description(self._holiday)
+        self._date = self._reader.get_date(self._holiday)
+        if self._date == "-":
+            self._attr_date = self._date
         else:
-            self._state = daysRemaining
+            self._attr_date = datetime.strftime(self._date,self._date_format)
+        self._state = "unknown"
 
     @property
+    def unique_id(self):
+        """Return a unique ID to use for this sensor."""
+        return self.config.get("unique_id", None)
+        
+    @property
     def name(self):
+        """Return the name of the sensor."""
         return self._name
+
+    @property
+    def state(self):
+        """Return the name of the sensor."""
+        return self._state
+
+    @property 
+    def device_state_attributes(self):
+        """Return the state attributes."""
+        res = {}
+        res[ATTR_DATE] = self._attr_date
+        res[ATTR_DESCRIPTION] = self._description
+        return res
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit this state is expressed in."""
+        if self._date != "-":
+            return "days"
 
     @property
     def icon(self):
         return self._icon
 
-    @property
-    def state(self):
-        return self._state
+    async def async_added_to_hass(self):
+        """Once the entity is added we should update to get the initial data loaded."""
+        self.async_schedule_update_ha_state(True)
 
-    @property
-    def device_state_attributes(self):
-        res = {}
-        res[ATTR_DATE] = self._date
-        res[ATTR_DESCRIPTION] = self._description
-        return res
-
-    def update(self):
-        _LOGGER.debug("updating reader")
+    async def async_update(self):
         self._reader.update()
-        self._date = self._reader.get_holiday_date(self._name)
-        self._description = self._reader.get_holiday_description(self._name)
+        self._description = self._reader.get_description(self._holiday)
+        self._date = self._reader.get_date(self._holiday)
+        if self._date == "-":
+            self._state = "unknown"
+            self._attr_date = self._date
+            return
+        self._attr_date = datetime.strftime(self._date,self._date_format)
         today = date.today()
-        nextDate = self._date.date()
-        daysRemaining = (nextDate - today).days
-        if self._description == "Holiday NOT found":
-            self._state = "unavailable"
+        daysRemaining = 0
+        if today < self._date:
+            daysRemaining = (self._date - today).days
+        elif today == self._date:
+            daysRemaining = 0
+            
+        if daysRemaining == 0:
+            self._icon = self._icon_today
+        elif daysRemaining <= self._soon:
+            self._icon = self._icon_soon
         else:
-            self._state = daysRemaining
+            self._icon = self._icon_normal
+        self._state = daysRemaining
