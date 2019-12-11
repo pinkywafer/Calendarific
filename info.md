@@ -1,4 +1,5 @@
 # Calendarific
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/pinkywafer/Calendarific)](https://github.com/pinkywafer/Calendarific/releases)
 ![GitHub Release Date](https://img.shields.io/github/release-date/pinkywafer/Calendarific)
 [![GitHub](https://img.shields.io/github/license/pinkywafer/Calendarific)](LICENSE)
