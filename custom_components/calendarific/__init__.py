@@ -50,7 +50,6 @@ async def async_setup(hass, config):
         hass.data[DOMAIN] = {
             'apiReader': reader
         }
-        reader.update()
     return True
 
 
@@ -75,6 +74,7 @@ class CalendarificApiReader:
         self._holidays = []
         self.next_holidays = []
         self._error_logged = False
+        self.update()
     
     def get_state(self):
         return "new"
