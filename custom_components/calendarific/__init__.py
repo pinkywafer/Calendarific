@@ -39,7 +39,7 @@ _LOGGER = logging.getLogger(__name__)
 
 holiday_list = []
 
-async def async_setup(hass, config):
+def setup(hass, config):
     """Set up platform using YAML."""
     if DOMAIN in config:
         api_key = config[DOMAIN].get(CONF_API_KEY)
