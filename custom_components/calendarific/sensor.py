@@ -17,12 +17,14 @@ from .const import (
     DEFAULT_ICON_NORMAL,
     DEFAULT_ICON_TODAY,
     DEFAULT_DATE_FORMAT,
+    DEFAULT_UNIT_OF_MEASUREMENT,
     CONF_ICON_NORMAL,
     CONF_ICON_TODAY,
     CONF_ICON_SOON,
     CONF_DATE_FORMAT,
     CONF_SOON,
     CONF_HOLIDAY,
+    CONF_UNIT_OF_MEASUREMENT,
     DOMAIN,
 )
 
@@ -38,6 +40,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_ICON_TODAY, default=DEFAULT_ICON_TODAY): cv.icon,
         vol.Optional(CONF_ICON_SOON, default=DEFAULT_ICON_SOON): cv.icon,
         vol.Optional(CONF_DATE_FORMAT, default=DEFAULT_DATE_FORMAT): cv.string,
+        vol.Optional(CONF_UNIT_OF_MEASUREMENT, default=DEFAULT_UNIT_OF_MEASUREMENT): cv.string,
     }
 )
 
@@ -70,6 +73,9 @@ class calendarific(Entity):
         self._icon_soon = config.get(CONF_ICON_SOON)
         self._soon = config.get(CONF_SOON)
         self._date_format = config.get(CONF_DATE_FORMAT)
+        self._unit_of_measurement = config.get(CONF_UNIT_OF_MEASUREMENT)
+        if self._unit_of_measurement is None:
+            self._unit_of_measurement = DEFAULT_UNIT_OF_MEASUREMENT
         self._icon = self._icon_normal
         self._reader = reader
         self._description = self._reader.get_description(self._holiday)
@@ -107,8 +113,7 @@ class calendarific(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit this state is expressed in."""
-        if self._date != "-":
-            return "days"
+        return self._unit_of_measurement
 
     @property
     def icon(self):
