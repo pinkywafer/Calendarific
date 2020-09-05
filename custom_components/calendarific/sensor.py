@@ -6,7 +6,7 @@ import voluptuous as vol
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 
-from homeassistant.const import CONF_NAME
+from homeassistant.const import CONF_NAME, ATTR_ATTRIBUTION
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
 
@@ -98,10 +98,11 @@ class calendarific(Entity):
     @property 
     def device_state_attributes(self):
         """Return the state attributes."""
-        res = {}
-        res[ATTR_DATE] = self._attr_date
-        res[ATTR_DESCRIPTION] = self._description
-        return res
+        return {
+            ATTR_DATE: self._attr_date,
+            ATTR_DESCRIPTION: self._description,
+            ATTR_ATTRIBUTION: ATTRIBUTION,
+        }
 
     @property
     def unit_of_measurement(self):
