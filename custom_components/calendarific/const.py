@@ -3,7 +3,7 @@
 DOMAIN = "calendarific"
 VERSION = "1.0.2"
 ISSUE_URL = "https://github.com/pinkywafer/Calendarific/issues"
-ATTRIBUTION = "Data from this is provided by calendarific.com"
+ATTRIBUTION = "Data provided by calendarific.com"
 
 ATTR_DATE = "date"
 
