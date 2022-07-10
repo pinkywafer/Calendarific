@@ -1,4 +1,7 @@
-"""Garbage collection calendar."""
+# Adapted from  bruxy70/Garbage-Collection
+# https://github.com/bruxy70/Garbage-Collection/blob/master/custom_components/garbage_collection/calendar.py
+
+"""Calendarific calendar."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta
@@ -18,12 +21,12 @@ async def async_setup_platform(
     """Add calendar entities to HA, of there are calendar instances."""
     # pylint: disable=unused-argument
     # Only single instance allowed
-    if not GarbageCollectionCalendar.instances:
-        async_add_entities([GarbageCollectionCalendar()], True)
+    if not CalendarificCalendar.instances:
+        async_add_entities([CalendarificCalendar()], True)
 
 
-class GarbageCollectionCalendar(CalendarEntity):
-    """The garbage collection calendar class."""
+class CalendarificCalendar(CalendarEntity):
+    """The Calendarific collection calendar class."""
 
     instances = False
 
@@ -31,7 +34,7 @@ class GarbageCollectionCalendar(CalendarEntity):
         """Create empty calendar."""
         self._cal_data: dict = {}
         self._attr_name = CALENDAR_NAME
-        GarbageCollectionCalendar.instances = True
+        CalendarificCalendar.instances = True
 
     @property
     def event(self) -> CalendarEvent | None:
@@ -95,24 +98,25 @@ class EntitiesCalendarData:
         start_date = start_datetime.date()
         end_date = end_datetime.date()
         for entity in self.entities:
+# Snuffy2: Look at code here to convert Calendarific attributes into Calendar attributes
             if (
                 entity not in hass.data[DOMAIN][SENSOR_PLATFORM]
                 or hass.data[DOMAIN][SENSOR_PLATFORM][entity].hidden
             ):
                 continue
-            garbage_collection = hass.data[DOMAIN][SENSOR_PLATFORM][entity]
-            start = garbage_collection.get_next_date(start_date, True)
+            calendarific = hass.data[DOMAIN][SENSOR_PLATFORM][entity]
+            start = calendarific.get_next_date(start_date, True)
             while start is not None and start_date <= start <= end_date:
                 try:
                     end = start + timedelta(days=1)
                 except TypeError:
                     end = start
                 name = (
-                    garbage_collection.name
-                    if garbage_collection.name is not None
+                    calendarific.name
+                    if calendarific.name is not None
                     else "Unknown"
                 )
-                if garbage_collection.expire_after is None:
+                if calendarific.expire_after is None:
                     event = CalendarEvent(
                         summary=name,
                         start=start,
@@ -122,10 +126,10 @@ class EntitiesCalendarData:
                     event = CalendarEvent(
                         summary=name,
                         start=datetime.combine(start, datetime.min.time()),
-                        end=datetime.combine(start, garbage_collection.expire_after),
+                        end=datetime.combine(start, calendarific.expire_after),
                     )
                 events.append(event)
-                start = garbage_collection.get_next_date(
+                start = calendarific.get_next_date(
                     start + timedelta(days=1), True
                 )
         return events

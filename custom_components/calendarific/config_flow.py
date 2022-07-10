@@ -10,22 +10,23 @@ from homeassistant.core import HomeAssistant, callback
 
 from collections import OrderedDict
 
-from .const import (
-    DOMAIN,
-    DEFAULT_ICON_NORMAL,
-    DEFAULT_ICON_SOON,
-    DEFAULT_ICON_TODAY,
-    DEFAULT_DATE_FORMAT,
-    DEFAULT_SOON,
-    DEFAULT_UNIT_OF_MEASUREMENT,
-    CONF_ICON_NORMAL,
-    CONF_ICON_TODAY,
-    CONF_ICON_SOON,
-    CONF_HOLIDAY,
-    CONF_DATE_FORMAT,
-    CONF_SOON,
-    CONF_UNIT_OF_MEASUREMENT,
-)
+from . import const
+#from .const import (
+#    DOMAIN,
+#    DEFAULT_ICON_NORMAL,
+#    DEFAULT_ICON_SOON,
+#    DEFAULT_ICON_TODAY,
+#    DEFAULT_DATE_FORMAT,
+#    DEFAULT_SOON,
+#    DEFAULT_UNIT_OF_MEASUREMENT,
+#    CONF_ICON_NORMAL,
+#    CONF_ICON_TODAY,
+#    CONF_ICON_SOON,
+#    CONF_HOLIDAY,
+#    CONF_DATE_FORMAT,
+#    CONF_SOON,
+#    CONF_UNIT_OF_MEASUREMENT,
+#)
 
 from . import holiday_list
 
