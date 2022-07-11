@@ -70,7 +70,7 @@ class CalendarificApiReader:
         self._state = state
         self._api_key = api_key
         self._lastupdated = None
-        _LOGGER.debug("apiReader loaded")
+        _LOGGER.info("apiReader loaded")
         self._holidays = []
         self.next_holidays = []
         self._error_logged = False
@@ -87,6 +87,7 @@ class CalendarificApiReader:
             if testdate < today:
                 holiday_datetime = next(i for i in self._next_holidays if i['name'] == holiday_name)['date']['datetime']
                 testdate = date(holiday_datetime['year'],holiday_datetime['month'],holiday_datetime['day'])
+            #_LOGGER.debug("API %s Testdate: %s" % (holiday_name, str(testdate)))
             return testdate
         except:
             return "-"
@@ -105,13 +106,14 @@ class CalendarificApiReader:
         params = {'country': self._country,'year': year,'location': self._state}
         calapi = calendarificAPI(self._api_key)
         response = calapi.holidays(params)
-        _LOGGER.debug("Updating from Calendarific api")
+        _LOGGER.info("Updating from Calendarific api")
         if 'error' in response:
             if not self._error_logged:
                 _LOGGER.error(response['meta']['error_detail'])
                 self._error_logged = True
             return
         self._holidays = response['response']['holidays']
+        #_LOGGER.debug("API Holidays: %s" % (self._holidays))
         params['year'] = year + 1
         response = calapi.holidays(params)
         if 'error' in response:
@@ -121,6 +123,7 @@ class CalendarificApiReader:
             return
         self._error_logged = False
         self._next_holidays = response['response']['holidays']
+        #_LOGGER.debug("API Next Holidays: %s" % (self._next_holidays))
         global holiday_list
         holiday_list = []
         for holiday in self._holidays:
