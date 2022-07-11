@@ -9,27 +9,31 @@ from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import CONF_NAME, ATTR_ATTRIBUTION
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.discovery import async_load_platform
 
 from .calendar import EntitiesCalendarData
-from . import const
+#from . import const
 
-#from .const import (
-#    ATTRIBUTION,
-#    DEFAULT_SOON,
-#    DEFAULT_ICON_SOON,
-#    DEFAULT_ICON_NORMAL,
-#    DEFAULT_ICON_TODAY,
-#    DEFAULT_DATE_FORMAT,
-#    DEFAULT_UNIT_OF_MEASUREMENT,
-#    CONF_ICON_NORMAL,
-#    CONF_ICON_TODAY,
-#    CONF_ICON_SOON,
-#    CONF_DATE_FORMAT,
-#    CONF_SOON,
-#    CONF_HOLIDAY,
-#    CONF_UNIT_OF_MEASUREMENT,
-#    DOMAIN,
-#)
+from .const import (
+    ATTRIBUTION,
+    DEFAULT_SOON,
+    DEFAULT_ICON_SOON,
+    DEFAULT_ICON_NORMAL,
+    DEFAULT_ICON_TODAY,
+    DEFAULT_DATE_FORMAT,
+    DEFAULT_UNIT_OF_MEASUREMENT,
+    CONF_ICON_NORMAL,
+    CONF_ICON_TODAY,
+    CONF_ICON_SOON,
+    CONF_DATE_FORMAT,
+    CONF_SOON,
+    CONF_HOLIDAY,
+    CONF_UNIT_OF_MEASUREMENT,
+    SENSOR_PLATFORM,
+    DOMAIN,
+    CALENDAR_PLATFORM,
+    CALENDAR_NAME,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -129,23 +133,28 @@ class calendarific(Entity):
         """Once the entity is added we should update to get the initial data loaded. Then add it to the Calendar."""
         await super().async_added_to_hass()
         self.async_schedule_update_ha_state(True)
+        if DOMAIN not in self.hass.data:
+            self.hass.data[DOMAIN] = {}
+        if SENSOR_PLATFORM not in self.hass.data[DOMAIN]:
+            self.hass.data[DOMAIN][SENSOR_PLATFORM] = {}
+        self.hass.data[DOMAIN][SENSOR_PLATFORM][self.entity_id] = self
 
-        if not self.hidden:
-            if const.CALENDAR_PLATFORM not in self.hass.data[const.DOMAIN]:
-                self.hass.data[const.DOMAIN][
-                    const.CALENDAR_PLATFORM
-                ] = EntitiesCalendarData(self.hass)
-                _LOGGER.debug("Creating Calendarific calendar")
-                self.hass.async_create_task(
-                    async_load_platform(
-                        self.hass,
-                        const.CALENDAR_PLATFORM,
-                        const.DOMAIN,
-                        {"name": const.CALENDAR_NAME},
-                        {"name": const.CALENDAR_NAME},
-                    )
+        #if not self.hidden:
+        if CALENDAR_PLATFORM not in self.hass.data[DOMAIN]:
+            self.hass.data[DOMAIN][
+                CALENDAR_PLATFORM
+            ] = EntitiesCalendarData(self.hass)
+            _LOGGER.info("Creating Calendarific calendar")
+            self.hass.async_create_task(
+                async_load_platform(
+                    self.hass,
+                    CALENDAR_PLATFORM,
+                    DOMAIN,
+                    {"name": CALENDAR_NAME},
+                    {"name": CALENDAR_NAME},
                 )
-        self.hass.data[const.DOMAIN][const.CALENDAR_PLATFORM].add_entity(
+            )
+        self.hass.data[DOMAIN][CALENDAR_PLATFORM].add_entity(
         	self.entity_id
         )
 
@@ -153,7 +162,7 @@ class calendarific(Entity):
 #        """When sensor is removed from hassio and there are no other sensors in the Calendarific calendar, remove it."""
 #        await super().async_will_remove_from_hass()
 # Need to determine that there are no more entries in the calendar before removing it
-#        self.hass.data[const.DOMAIN][const.CALENDAR_PLATFORM].remove_entity(
+#        self.hass.data[DOMAIN][CALENDAR_PLATFORM].remove_entity(
 #            self.entity_id
 #        )
 
@@ -168,7 +177,7 @@ class calendarific(Entity):
             return
         self._attr_date = datetime.strftime(self._date,self._date_format)
         #_LOGGER.debug("Sensor %s Date Format: %s" % (self._name, str(self._date_format)))
-        _LOGGER.debug("Sensor %s Attr Date: %s" % (self._name, str(self._attr_date)))
+        #_LOGGER.debug("Sensor %s Attr Date: %s" % (self._name, str(self._attr_date)))
         today = date.today()
         daysRemaining = 0
         if today < self._date:
