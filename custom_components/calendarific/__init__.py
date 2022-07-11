@@ -87,7 +87,7 @@ class CalendarificApiReader:
             if testdate < today:
                 holiday_datetime = next(i for i in self._next_holidays if i['name'] == holiday_name)['date']['datetime']
                 testdate = date(holiday_datetime['year'],holiday_datetime['month'],holiday_datetime['day'])
-            _LOGGER.debug("API %s Testdate: %s" % (holiday_name, str(testdate)))
+            #_LOGGER.debug("API %s Testdate: %s" % (holiday_name, str(testdate)))
             return testdate
         except:
             return "-"
