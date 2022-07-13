@@ -154,20 +154,21 @@ class calendarific(Entity):
                     {"name": CALENDAR_NAME},
                 )
             )
-        self.hass.data[DOMAIN][CALENDAR_PLATFORM].add_entity(
-        	self.entity_id
-        )
+        #else:
+            #_LOGGER.info("Calendarific calendar already exists")
+        self.hass.data[DOMAIN][CALENDAR_PLATFORM].add_entity(self.entity_id)
 
-#    async def async_will_remove_from_hass(self):
-#        """When sensor is removed from hassio and there are no other sensors in the Calendarific calendar, remove it."""
-#        await super().async_will_remove_from_hass()
-# Need to determine that there are no more entries in the calendar before removing it
-#        self.hass.data[DOMAIN][CALENDAR_PLATFORM].remove_entity(
-#            self.entity_id
-#        )
+    async def async_will_remove_from_hass(self):
+        """When sensor is removed from hassio and there are no other sensors in the Calendarific calendar, remove it."""
+        await super().async_will_remove_from_hass()
+        _LOGGER.debug("Removing: %s" % (self._name))
+        del self.hass.data[DOMAIN][SENSOR_PLATFORM][self.entity_id]
+        self.hass.data[DOMAIN][CALENDAR_PLATFORM].remove_entity(self.entity_id)
+        #_LOGGER.debug("Remaining Calendar Entries: %s" % (self.hass.data[DOMAIN][CALENDAR_PLATFORM]))
 
     async def async_update(self):
         await self.hass.async_add_executor_job(self._reader.update)
+        #_LOGGER.debug("Update: %s" % (self._name))
         self._description = self._reader.get_description(self._holiday)
         self._date = self._reader.get_date(self._holiday)
         #_LOGGER.debug("Sensor %s Date: %s" % (self._name, str(self._date)))
