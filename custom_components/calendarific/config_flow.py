@@ -1,43 +1,39 @@
 """ config flow """
 import logging
 import uuid
+from collections import OrderedDict
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 
 from collections import OrderedDict
-
-#from . import const
+from . import holiday_list
 from .const import (
-    DOMAIN,
+    CONF_DATE_FORMAT,
+    CONF_HOLIDAY,
+    CONF_ICON_NORMAL,
+    CONF_ICON_SOON,
+    CONF_ICON_TODAY,
+    CONF_SOON,
+    CONF_UNIT_OF_MEASUREMENT,
+    DEFAULT_DATE_FORMAT,
     DEFAULT_ICON_NORMAL,
     DEFAULT_ICON_SOON,
     DEFAULT_ICON_TODAY,
-    DEFAULT_DATE_FORMAT,
     DEFAULT_SOON,
     DEFAULT_UNIT_OF_MEASUREMENT,
-    CONF_ICON_NORMAL,
-    CONF_ICON_TODAY,
-    CONF_ICON_SOON,
-    CONF_HOLIDAY,
-    CONF_DATE_FORMAT,
-    CONF_SOON,
-    CONF_UNIT_OF_MEASUREMENT,
+    DOMAIN,
 )
-
-from . import holiday_list
 
 _LOGGER = logging.getLogger(__name__)
 
+
 @callback
 def calendarific_entries(hass: HomeAssistant):
-    return set(
-        (entry.data)
-        for entry in hass.config_entries.async_entries(DOMAIN)
-    )
+    return set((entry.data) for entry in hass.config_entries.async_entries(DOMAIN))
+
 
 class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     "handle config flow"
@@ -57,7 +53,9 @@ class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if self._errors == {}:
                 if self._data["name"] == "":
                     self._data["name"] = self._data["holiday"]
-                return self.async_create_entry(title=self._data["name"], data=self._data)
+                return self.async_create_entry(
+                    title=self._data["name"], data=self._data
+                )
         return await self._show_user_form(user_input)
 
     async def _show_user_form(self, user_input):
@@ -85,15 +83,19 @@ class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if CONF_UNIT_OF_MEASUREMENT in user_input:
                 unit_of_measurement = user_input[CONF_UNIT_OF_MEASUREMENT]
         data_schema = OrderedDict()
-        data_schema[vol.Required(CONF_HOLIDAY, default=holiday)] = vol.In(holiday_list) 
+        data_schema[vol.Required(CONF_HOLIDAY, default=holiday)] = vol.In(holiday_list)
         data_schema[vol.Optional(CONF_NAME, default=name)] = str
-        data_schema[vol.Required(CONF_UNIT_OF_MEASUREMENT, default=unit_of_measurement)] = str
+        data_schema[
+            vol.Required(CONF_UNIT_OF_MEASUREMENT, default=unit_of_measurement)
+        ] = str
         data_schema[vol.Required(CONF_ICON_NORMAL, default=icon_normal)] = str
         data_schema[vol.Required(CONF_ICON_TODAY, default=icon_today)] = str
         data_schema[vol.Required(CONF_SOON, default=days_as_soon)] = int
         data_schema[vol.Required(CONF_ICON_SOON, default=icon_soon)] = str
         data_schema[vol.Required(CONF_DATE_FORMAT, default=date_format)] = str
-        return self.async_show_form(step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors)
+        return self.async_show_form(
+            step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors
+        )
 
     async def async_step_import(self, user_input=None):
         """Import a config entry.
