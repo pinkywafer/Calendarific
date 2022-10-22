@@ -63,7 +63,7 @@ class CalendarificApiReader:
         self._state = state
         self._api_key = api_key
         self._lastupdated = None
-        _LOGGER.debug("apiReader loaded")
+        _LOGGER.info("apiReader loaded")
         self._holidays = []
         self.next_holidays = []
         self._error_logged = False
@@ -94,6 +94,7 @@ class CalendarificApiReader:
                 )
             return testdate
         except Exception as e:
+            _LOGGER.warning("get_date error: " + str(e))
             return "-"
 
     def get_description(self, holiday_name):
@@ -102,6 +103,7 @@ class CalendarificApiReader:
                 "description"
             ]
         except Exception as e:
+            _LOGGER.warning("get_description error: " + str(e))
             return "NOT FOUND"
 
     def update(self):
@@ -112,14 +114,15 @@ class CalendarificApiReader:
         params = {"country": self._country, "year": year, "location": self._state}
         calapi = calendarificAPI(self._api_key)
         response = calapi.holidays(params)
-        _LOGGER.debug("Updating from Calendarific api")
-        if "error" in response:
+        _LOGGER.info("Updating from Calendarific api")
+        if 'error' in response:
             if not self._error_logged:
                 _LOGGER.error(response["meta"]["error_detail"])
                 self._error_logged = True
             return
-        self._holidays = response["response"]["holidays"]
-        params["year"] = year + 1
+        self._holidays = response['response']['holidays']
+        #_LOGGER.debug("API Holidays: %s" % (self._holidays))
+        params['year'] = year + 1
         response = calapi.holidays(params)
         if "error" in response:
             if not self._error_logged:
@@ -127,7 +130,8 @@ class CalendarificApiReader:
                 self._error_logged = True
             return
         self._error_logged = False
-        self._next_holidays = response["response"]["holidays"]
+        self._next_holidays = response['response']['holidays']
+        #_LOGGER.debug("API Next Holidays: %s" % (self._next_holidays))
         global holiday_list
         holiday_list = []
         for holiday in self._holidays:
