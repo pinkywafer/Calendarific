@@ -109,6 +109,7 @@ class calendarific(Entity):
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
+        #_LOGGER.debug("ESA %s Attr Date: %s" % (self._name, str(self._attr_date)))
         return {
             ATTR_DATE: self._attr_date,
             ATTR_DESCRIPTION: self._description,
@@ -132,11 +133,14 @@ class calendarific(Entity):
         await self.hass.async_add_executor_job(self._reader.update)
         self._description = self._reader.get_description(self._holiday)
         self._date = self._reader.get_date(self._holiday)
+        #_LOGGER.debug("Sensor %s Date: %s" % (self._name, str(self._date)))
         if self._date == "-":
             self._state = "unknown"
             self._attr_date = self._date
             return
-        self._attr_date = datetime.strftime(self._date, self._date_format)
+        self._attr_date = datetime.strftime(self._date,self._date_format)
+        #_LOGGER.debug("Sensor %s Date Format: %s" % (self._name, str(self._date_format)))
+        _LOGGER.debug("Sensor %s Attr Date: %s" % (self._name, str(self._attr_date)))
         today = date.today()
         daysRemaining = 0
         if today < self._date:
