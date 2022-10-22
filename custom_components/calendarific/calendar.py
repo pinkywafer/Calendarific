@@ -4,24 +4,19 @@
 """Calendarific calendar."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.core import HomeAssistant
 from homeassistant.util import Throttle
 
-from .const import (
-    CALENDAR_NAME, 
-    CALENDAR_PLATFORM, 
-    DOMAIN, 
-    SENSOR_PLATFORM, 
-    DEFAULT_DATE_FORMAT,
-)
+from .const import CALENDAR_NAME, CALENDAR_PLATFORM, DOMAIN, SENSOR_PLATFORM
 
 _LOGGER = logging.getLogger(__name__)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
+
 
 async def async_setup_platform(
     hass, config, async_add_entities, discovery_info=None
@@ -106,30 +101,29 @@ class EntitiesCalendarData:
             return events
         start_date = start_datetime.date()
         end_date = end_datetime.date()
-        for entity in self.entities:
-            #_LOGGER.debug("Get Events: Entity: %s" % (entity))
+        for ent in self.entities:
+            # _LOGGER.debug("Get Events: Entity Name: " + str(ent))
             if (
-                entity not in hass.data[DOMAIN][SENSOR_PLATFORM]
-                #or hass.data[DOMAIN][SENSOR_PLATFORM][entity].hidden
+                ent
+                not in hass.data[DOMAIN][SENSOR_PLATFORM]
+                # or hass.data[DOMAIN][SENSOR_PLATFORM][ent].hidden
             ):
                 continue
-            calendarific = hass.data[DOMAIN][SENSOR_PLATFORM][entity]
-            #_LOGGER.debug("Get Events: Sensor Entity: %s" % (calendarific))
-            raw_date = calendarific.extra_state_attributes["date"]
-            #_LOGGER.debug("Get Events: Raw Date: %s" % (raw_date))
-            holiday_date = datetime.strptime(raw_date, DEFAULT_DATE_FORMAT).date()
-            #_LOGGER.debug("Get Events: Holiday Date: %s" % (holiday_date))
-            if holiday_date is not None and start_date <= holiday_date <= end_date:
-                name = calendarific.name
-                #_LOGGER.debug("Get Events Name: %s" % (name))
-                descript = calendarific.extra_state_attributes["description"]
-                #_LOGGER.debug("Get Events: Description: %s" % (descript))
-                _LOGGER.debug("Showing Event: %s (%s)" % (name, holiday_date))
+            entity = self._hass.data[DOMAIN][SENSOR_PLATFORM][ent]
+            _LOGGER.debug("Get Events: Entity: " + str(entity))
+            if (
+                entity
+                and entity.name
+                and entity._date
+                and start_date <= entity._date <= end_date
+            ):
                 event = CalendarEvent(
-                    summary=name,
-                    start=holiday_date,
-                    end=holiday_date,
-                    description=descript,
+                    summary=entity.name,
+                    start=entity._date,
+                    end=entity._date,
+                    description=entity.extra_state_attributes["description"]
+                    if "description" in entity.extra_state_attributes
+                    else None,
                 )
                 events.append(event)
         return events
@@ -137,21 +131,17 @@ class EntitiesCalendarData:
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self) -> None:
         """Get the latest data."""
-        #next_dates = {}
         _LOGGER.debug("Update")
-        for entity in self.entities:
-            #_LOGGER.debug("Update Entity: %s" % (entity))
-            name = self._hass.data[DOMAIN][SENSOR_PLATFORM][entity].name
-            #_LOGGER.debug("Update: Name: %s" % (name))
-            raw_date = self._hass.data[DOMAIN][SENSOR_PLATFORM][entity].extra_state_attributes["date"]
-            #_LOGGER.debug("Update: Raw Date: %s" % (raw_date))
-            holiday_date = datetime.strptime(raw_date, DEFAULT_DATE_FORMAT).date()
-            #_LOGGER.debug("Update: Holiday Date: %s" % (holiday_date))
-            descript = self._hass.data[DOMAIN][SENSOR_PLATFORM][entity].extra_state_attributes["description"]
-            #_LOGGER.debug("Update: Description: %s" % (descript))
-            self.event = CalendarEvent(
-                summary=name,
-                start=holiday_date,
-                end=holiday_date,
-                description=descript,
-            )
+        for ent in self.entities:
+            # _LOGGER.debug("Update Entity Name: " + str(ent))
+            entity = self._hass.data[DOMAIN][SENSOR_PLATFORM][ent]
+            _LOGGER.debug("Update Entity: " + str(entity))
+            if entity and entity.name and entity._date:
+                self.event = CalendarEvent(
+                    summary=entity.name,
+                    start=entity._date,
+                    end=entity._date,
+                    description=entity.extra_state_attributes["description"]
+                    if "description" in entity.extra_state_attributes
+                    else None,
+                )

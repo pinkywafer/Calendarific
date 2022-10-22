@@ -8,7 +8,6 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 
-from collections import OrderedDict
 from . import holiday_list
 from .const import (
     CONF_DATE_FORMAT,
