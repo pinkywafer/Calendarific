@@ -1,4 +1,6 @@
 """ config flow """
+from __future__ import annotations
+
 import logging
 import uuid
 from collections import OrderedDict
