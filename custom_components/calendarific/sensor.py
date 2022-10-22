@@ -7,6 +7,10 @@ import voluptuous as vol
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import ATTR_ATTRIBUTION, CONF_NAME
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.discovery import async_load_platform
+
+from .calendar import EntitiesCalendarData
+#from . import const
 
 from .const import (
     ATTRIBUTION,
@@ -17,6 +21,7 @@ from .const import (
     CONF_ICON_TODAY,
     CONF_SOON,
     CONF_UNIT_OF_MEASUREMENT,
+    SENSOR_PLATFORM,
     DEFAULT_DATE_FORMAT,
     DEFAULT_ICON_NORMAL,
     DEFAULT_ICON_SOON,
@@ -24,7 +29,11 @@ from .const import (
     DEFAULT_SOON,
     DEFAULT_UNIT_OF_MEASUREMENT,
     DOMAIN,
+    CALENDAR_PLATFORM,
+    CALENDAR_NAME,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 ATTR_DESCRIPTION = "description"
 ATTR_DATE = "date"
@@ -101,12 +110,13 @@ class calendarific(Entity):
 
     @property
     def state(self):
-        """Return the name of the sensor."""
+        """Return the state of the sensor."""
         return self._state
 
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
+        #_LOGGER.debug("ESA %s Attr Date: %s" % (self._name, str(self._attr_date)))
         return {
             ATTR_DATE: self._attr_date,
             ATTR_DESCRIPTION: self._description,
@@ -123,18 +133,55 @@ class calendarific(Entity):
         return self._icon
 
     async def async_added_to_hass(self):
-        """Once the entity is added we should update to get the initial data loaded."""
+        """Once the entity is added we should update to get the initial data loaded. Then add it to the Calendar."""
+        await super().async_added_to_hass()
         self.async_schedule_update_ha_state(True)
+        if DOMAIN not in self.hass.data:
+            self.hass.data[DOMAIN] = {}
+        if SENSOR_PLATFORM not in self.hass.data[DOMAIN]:
+            self.hass.data[DOMAIN][SENSOR_PLATFORM] = {}
+        self.hass.data[DOMAIN][SENSOR_PLATFORM][self.entity_id] = self
+
+        #if not self.hidden:
+        if CALENDAR_PLATFORM not in self.hass.data[DOMAIN]:
+            self.hass.data[DOMAIN][
+                CALENDAR_PLATFORM
+            ] = EntitiesCalendarData(self.hass)
+            _LOGGER.info("Creating Calendarific calendar")
+            self.hass.async_create_task(
+                async_load_platform(
+                    self.hass,
+                    CALENDAR_PLATFORM,
+                    DOMAIN,
+                    {"name": CALENDAR_NAME},
+                    {"name": CALENDAR_NAME},
+                )
+            )
+        #else:
+            #_LOGGER.info("Calendarific calendar already exists")
+        self.hass.data[DOMAIN][CALENDAR_PLATFORM].add_entity(self.entity_id)
+
+    async def async_will_remove_from_hass(self):
+        """When sensor is removed from hassio and there are no other sensors in the Calendarific calendar, remove it."""
+        await super().async_will_remove_from_hass()
+        _LOGGER.debug("Removing: %s" % (self._name))
+        del self.hass.data[DOMAIN][SENSOR_PLATFORM][self.entity_id]
+        self.hass.data[DOMAIN][CALENDAR_PLATFORM].remove_entity(self.entity_id)
+        #_LOGGER.debug("Remaining Calendar Entries: %s" % (self.hass.data[DOMAIN][CALENDAR_PLATFORM]))
 
     async def async_update(self):
         await self.hass.async_add_executor_job(self._reader.update)
+        #_LOGGER.debug("Update: %s" % (self._name))
         self._description = self._reader.get_description(self._holiday)
         self._date = self._reader.get_date(self._holiday)
+        #_LOGGER.debug("Sensor %s Date: %s" % (self._name, str(self._date)))
         if self._date == "-":
             self._state = "unknown"
             self._attr_date = self._date
             return
-        self._attr_date = datetime.strftime(self._date, self._date_format)
+        self._attr_date = datetime.strftime(self._date,self._date_format)
+        #_LOGGER.debug("Sensor %s Date Format: %s" % (self._name, str(self._date_format)))
+        #_LOGGER.debug("Sensor %s Attr Date: %s" % (self._name, str(self._attr_date)))
         today = date.today()
         daysRemaining = 0
         if today < self._date:

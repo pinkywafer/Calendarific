@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
 
+from collections import OrderedDict
 from . import holiday_list
 from .const import (
     CONF_DATE_FORMAT,
@@ -48,6 +49,7 @@ DATE_FORMAT_OPTIONS = [
         value="%A, %B %-d, %Y", label="Saturday, December 30, 2000 (%A, %B %-d, %Y)"
     ),
 ]
+
 _LOGGER = logging.getLogger(__name__)
 
 
