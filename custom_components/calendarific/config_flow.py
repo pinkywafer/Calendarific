@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_NAME
+from homeassistant.const import CONF_NAME, CONF_UNIQUE_ID
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
@@ -33,6 +33,8 @@ from .const import (
 COMPONENT_CONFIG_URL = (
     "https://github.com/pinkywafer/Calendarific#sensor-configuration-parameters"
 )
+SOON_MIN = 0
+SOON_MAX = 364
 DATE_FORMAT_OPTIONS = [
     selector.SelectOptionDict(
         value=DEFAULT_DATE_FORMAT, label="2000-12-30 (" + DEFAULT_DATE_FORMAT + ")"
@@ -61,22 +63,73 @@ class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         self._errors = {}
-        self._data = {}
-        self._data["unique_id"] = str(uuid.uuid4())
+        # self._data = {}
+        # self.unique_id = str(uuid.uuid4())
 
     async def async_step_user(self, user_input=None) -> FlowResult:
         if holiday_list == []:
             return self.async_abort(reason="no_holidays_found")
         self._errors = {}
         if user_input is not None:
-            self._data.update(user_input)
-            if self._errors == {}:
-                if self._data["name"] == "":
-                    self._data["name"] = self._data["holiday"]
-                return self.async_create_entry(
-                    title=self._data["name"], data=self._data
-                )
-        return await self._show_user_form(user_input)
+            # self._data.update(user_input)
+            # if self._errors == {}:
+            user_input.update({CONF_UNIQUE_ID: str(uuid.uuid4())})
+            if not (CONF_NAME in user_input and user_input.get(CONF_NAME)):
+                user_input.update({CONF_NAME: user_input.get(CONF_HOLIDAY)})
+            return self.async_create_entry(
+                title=user_input.get(CONF_NAME), data=user_input
+            )
+        DATA_SCHEMA = vol.Schema(
+            {
+                vol.Required(CONF_HOLIDAY): vol.In(holiday_list),
+                vol.Optional(
+                    CONF_NAME,
+                ): str,
+                vol.Required(
+                    CONF_UNIT_OF_MEASUREMENT,
+                    default=DEFAULT_UNIT_OF_MEASUREMENT,
+                ): str,
+                vol.Required(
+                    CONF_ICON_NORMAL,
+                    default=DEFAULT_ICON_NORMAL,
+                ): selector.IconSelector(selector.IconSelectorConfig()),
+                vol.Required(
+                    CONF_ICON_TODAY,
+                    default=DEFAULT_ICON_TODAY,
+                ): selector.IconSelector(selector.IconSelectorConfig()),
+                vol.Required(CONF_SOON, default=DEFAULT_SOON,): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=SOON_MIN,
+                        max=SOON_MAX,
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Required(
+                    CONF_ICON_SOON,
+                    default=DEFAULT_ICON_SOON,
+                ): selector.IconSelector(selector.IconSelectorConfig()),
+                vol.Required(
+                    CONF_DATE_FORMAT,
+                    default=DEFAULT_DATE_FORMAT,
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=DATE_FORMAT_OPTIONS,
+                        multiple=False,
+                        custom_value=True,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        )
+        # return await self._show_user_form(user_input)
+        return self.async_show_form(
+            step_id="user",
+            data_schema=DATA_SCHEMA,
+            errors=self._errors,
+            description_placeholders={
+                "component_config_url": COMPONENT_CONFIG_URL,
+            },
+        )
 
     async def _show_user_form(self, user_input):
         name = ""
@@ -102,6 +155,7 @@ class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 date_format = user_input[CONF_DATE_FORMAT]
             if CONF_UNIT_OF_MEASUREMENT in user_input:
                 unit_of_measurement = user_input[CONF_UNIT_OF_MEASUREMENT]
+
         data_schema = OrderedDict()
         data_schema[vol.Required(CONF_HOLIDAY, default=holiday)] = vol.In(holiday_list)
         data_schema[vol.Optional(CONF_NAME, default=name)] = str
@@ -219,7 +273,13 @@ class CalendarificOptionsFlowHandler(config_entries.OptionsFlow):
                     default=self.config_entry.data[CONF_SOON]
                     if CONF_SOON in self.config_entry.data
                     else DEFAULT_SOON,
-                ): int,
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=SOON_MIN,
+                        max=SOON_MAX,
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
                 vol.Required(
                     CONF_ICON_SOON,
                     default=self.config_entry.data[CONF_ICON_SOON]
@@ -250,6 +310,7 @@ class CalendarificOptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=OPTIONS_SCHEMA,
+            errors=self._errors,
             description_placeholders={
                 "component_config_url": COMPONENT_CONFIG_URL,
                 "sensor_name": self.config_entry.data[CONF_NAME],
