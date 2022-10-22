@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 import uuid
-from collections import OrderedDict
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -121,55 +120,9 @@ class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
             }
         )
-        # return await self._show_user_form(user_input)
         return self.async_show_form(
             step_id="user",
             data_schema=DATA_SCHEMA,
-            errors=self._errors,
-            description_placeholders={
-                "component_config_url": COMPONENT_CONFIG_URL,
-            },
-        )
-
-    async def _show_user_form(self, user_input):
-        name = ""
-        holiday = ""
-        icon_normal = DEFAULT_ICON_NORMAL
-        icon_soon = DEFAULT_ICON_SOON
-        icon_today = DEFAULT_ICON_TODAY
-        date_format = DEFAULT_DATE_FORMAT
-        days_as_soon = DEFAULT_SOON
-        unit_of_measurement = DEFAULT_UNIT_OF_MEASUREMENT
-        if user_input is not None:
-            if CONF_NAME in user_input:
-                name = user_input[CONF_NAME]
-            if CONF_HOLIDAY in user_input:
-                holiday = user_input[CONF_HOLIDAY]
-            if CONF_ICON_NORMAL in user_input:
-                icon_normal = user_input[CONF_ICON_NORMAL]
-            if CONF_ICON_SOON in user_input:
-                icon_soon = user_input[CONF_ICON_SOON]
-            if CONF_ICON_TODAY in user_input:
-                icon_today = user_input[CONF_ICON_TODAY]
-            if CONF_DATE_FORMAT in user_input:
-                date_format = user_input[CONF_DATE_FORMAT]
-            if CONF_UNIT_OF_MEASUREMENT in user_input:
-                unit_of_measurement = user_input[CONF_UNIT_OF_MEASUREMENT]
-
-        data_schema = OrderedDict()
-        data_schema[vol.Required(CONF_HOLIDAY, default=holiday)] = vol.In(holiday_list)
-        data_schema[vol.Optional(CONF_NAME, default=name)] = str
-        data_schema[
-            vol.Required(CONF_UNIT_OF_MEASUREMENT, default=unit_of_measurement)
-        ] = str
-        data_schema[vol.Required(CONF_ICON_NORMAL, default=icon_normal)] = str
-        data_schema[vol.Required(CONF_ICON_TODAY, default=icon_today)] = str
-        data_schema[vol.Required(CONF_SOON, default=days_as_soon)] = int
-        data_schema[vol.Required(CONF_ICON_SOON, default=icon_soon)] = str
-        data_schema[vol.Required(CONF_DATE_FORMAT, default=date_format)] = str
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(data_schema),
             errors=self._errors,
             description_placeholders={
                 "component_config_url": COMPONENT_CONFIG_URL,
@@ -215,26 +168,10 @@ class CalendarificOptionsFlowHandler(config_entries.OptionsFlow):
                 user_input.setdefault(m, self.config_entry.data[m])
             # Remove any keys with blank values
             for m in dict(user_input).keys():
-                # _LOGGER.debug(
-                #    "[Options Update] "
-                #    + m
-                #    + " ["
-                #    + str(type(user_input.get(m)))
-                #    + "]: "
-                #    + str(user_input.get(m))
-                # )
                 if isinstance(user_input.get(m), str) and not user_input.get(m):
                     user_input.pop(m)
             _LOGGER.debug("[Options Update] updated user_input: " + str(user_input))
 
-            # self._data.update(user_input)
-            # _LOGGER.debug("[Options Update] updated self._data: " + str(self._data))
-            # if self._errors == {}:
-            #    if self._data["name"] == "":
-            #        self._data["name"] = self._data["holiday"]
-            #    return self.async_create_entry(
-            #        title=self._data["name"], data=self._data
-            #    )
             self.hass.config_entries.async_update_entry(
                 self.config_entry, data=user_input, options=self.config_entry.options
             )
@@ -243,13 +180,6 @@ class CalendarificOptionsFlowHandler(config_entries.OptionsFlow):
 
         OPTIONS_SCHEMA = vol.Schema(
             {
-                # vol.Required(CONF_HOLIDAY, default=holiday)] = vol.In(holiday_list)
-                # vol.Required(
-                #    CONF_NAME,
-                #    default=self.config_entry.data[CONF_NAME]
-                #    if CONF_NAME in self.config_entry.data
-                #    else None,
-                # ): str,
                 vol.Required(
                     CONF_UNIT_OF_MEASUREMENT,
                     default=self.config_entry.data[CONF_UNIT_OF_MEASUREMENT]
@@ -301,7 +231,6 @@ class CalendarificOptionsFlowHandler(config_entries.OptionsFlow):
                 ),
             }
         )
-        # _LOGGER.debug("[Options Update] initial self._data: " + str(self._data))
         _LOGGER.debug(
             "[Options Update] initial self.config_entry.data: "
             + str(self.config_entry.data)
