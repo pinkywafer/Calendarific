@@ -8,7 +8,6 @@
         "step": {
             "user": {
                 "title": "Calendarific",
-                "description": "Enter the sensor name and configure sensor parameters. More info on https://github.com/pinkywafer/Calendarific",
                 "data": {
                     "name": "Friendly name (Leave blank to use holiday name)",
                     "holiday": "Holiday",
@@ -18,7 +17,8 @@
                     "days_as_soon": "Number of Days to consider soon",
                     "icon_soon": "Icon when holiday is soon",
                     "date_format": "Date format (see http://strftime.org/)"
-                }
+                },
+                "description": "Create a new holiday sensor\nSee [Configuration Options]({component_config_url}) on GitHub for details"
             }
         }
     },
@@ -26,7 +26,6 @@
         "step": {
             "init": {
                 "title": "Calendarific",
-                "description": "Enter the sensor name and configure sensor parameters. More info on https://github.com/pinkywafer/Calendarific",
                 "data": {
                     "name": "Friendly name",
                     "holiday": "Holiday",
@@ -37,7 +36,7 @@
                     "icon_soon": "Icon when holiday is soon",
                     "date_format": "Date format (see http://strftime.org/)"
                 },
-                "description": "Update existing sensor"
+                "description": "**Updating holiday:&nbsp;{sensor_name}**\nSee [Configuration Options]({component_config_url}) on GitHub for details"
             }
         }
     }

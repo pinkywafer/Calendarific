@@ -101,7 +101,12 @@ class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         data_schema[vol.Required(CONF_ICON_SOON, default=icon_soon)] = str
         data_schema[vol.Required(CONF_DATE_FORMAT, default=date_format)] = str
         return self.async_show_form(
-            step_id="user", data_schema=vol.Schema(data_schema), errors=self._errors
+            step_id="user",
+            data_schema=vol.Schema(data_schema),
+            errors=self._errors,
+            description_placeholders={
+                "component_config_url": COMPONENT_CONFIG_URL,
+            },
         )
 
     async def async_step_import(self, user_input=None):
