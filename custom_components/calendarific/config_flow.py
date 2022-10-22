@@ -33,7 +33,17 @@ from .const import (
 COMPONENT_CONFIG_URL = (
     "https://github.com/pinkywafer/Calendarific#sensor-configuration-parameters"
 )
-
+DATE_FORMAT_OPTIONS = [
+    selector.SelectOptionDict(
+        value=DEFAULT_DATE_FORMAT, label="2000-12-30 (" + DEFAULT_DATE_FORMAT + ")"
+    ),
+    selector.SelectOptionDict(
+        value="%x", label="Locale’s appropriate date [12/30/00] (%x)"
+    ),
+    selector.SelectOptionDict(
+        value="%B %-d, %Y", label="December 30, 2000 (%B %-d, %Y)"
+    ),
+]
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -44,7 +54,7 @@ def calendarific_entries(hass: HomeAssistant):
 
 class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     "handle config flow"
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+    # CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self) -> None:
         self._errors = {}
@@ -132,6 +142,8 @@ class CalendarificOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, entry: config_entries.ConfigEntry) -> None:
         """Initialize Calendarific options flow."""
+        self._errors = {}
+        # self._data = {}
         self.config_entry = entry
 
     async def async_step_init(self, user_input=None):
@@ -139,26 +151,27 @@ class CalendarificOptionsFlowHandler(config_entries.OptionsFlow):
         self._errors = {}
         if user_input is not None:
             _LOGGER.debug(
-                "[options_flow async_step_init] user_input initial: " + str(user_input)
+                "[options_flow async_step_init] initial user_input: " + str(user_input)
             )
             # Bring in other keys not in the Options Flow
             for m in dict(self.config_entry.data).keys():
                 user_input.setdefault(m, self.config_entry.data[m])
             # Remove any keys with blank values
             for m in dict(user_input).keys():
-                _LOGGER.debug(
-                    "[Options Update] "
-                    + m
-                    + " ["
-                    + str(type(user_input.get(m)))
-                    + "]: "
-                    + str(user_input.get(m))
-                )
+                # _LOGGER.debug(
+                #    "[Options Update] "
+                #    + m
+                #    + " ["
+                #    + str(type(user_input.get(m)))
+                #    + "]: "
+                #    + str(user_input.get(m))
+                # )
                 if isinstance(user_input.get(m), str) and not user_input.get(m):
                     user_input.pop(m)
-            _LOGGER.debug("[Options Update] updated config: " + str(user_input))
+            _LOGGER.debug("[Options Update] updated user_input: " + str(user_input))
 
-            self._data.update(user_input)
+            # self._data.update(user_input)
+            # _LOGGER.debug("[Options Update] updated self._data: " + str(self._data))
             # if self._errors == {}:
             #    if self._data["name"] == "":
             #        self._data["name"] = self._data["holiday"]
@@ -166,7 +179,7 @@ class CalendarificOptionsFlowHandler(config_entries.OptionsFlow):
             #        title=self._data["name"], data=self._data
             #    )
             self.hass.config_entries.async_update_entry(
-                self.config_entry, data=self._data, options=self.config_entry.options
+                self.config_entry, data=user_input, options=self.config_entry.options
             )
             await self.hass.config_entries.async_reload(self.config_entry.entry_id)
             return self.async_create_entry(title="", data={})
@@ -174,46 +187,62 @@ class CalendarificOptionsFlowHandler(config_entries.OptionsFlow):
         OPTIONS_SCHEMA = vol.Schema(
             {
                 # vol.Required(CONF_HOLIDAY, default=holiday)] = vol.In(holiday_list)
-                # DEFAULT_DATE_FORMAT,
-                #    DEFAULT_ICON_NORMAL,
-                #    DEFAULT_ICON_SOON,
-                #    DEFAULT_ICON_TODAY,
-                #    DEFAULT_SOON,
-                #    DEFAULT_UNIT_OF_MEASUREMENT,
-                vol.Optional(CONF_NAME): str,
+                # vol.Required(
+                #    CONF_NAME,
+                #    default=self.config_entry.data[CONF_NAME]
+                #    if CONF_NAME in self.config_entry.data
+                #    else None,
+                # ): str,
                 vol.Required(
-                    CONF_UNIT_OF_MEASUREMENT, default=DEFAULT_UNIT_OF_MEASUREMENT
+                    CONF_UNIT_OF_MEASUREMENT,
+                    default=self.config_entry.data[CONF_UNIT_OF_MEASUREMENT]
+                    if CONF_UNIT_OF_MEASUREMENT in self.config_entry.data
+                    else DEFAULT_UNIT_OF_MEASUREMENT,
                 ): str,
-                vol.Required(CONF_ICON_NORMAL): selector.IconSelector(
-                    selector.IconSelectorConfig(placeholder=DEFAULT_ICON_NORMAL)
+                vol.Required(
+                    CONF_ICON_NORMAL,
+                    default=self.config_entry.data[CONF_ICON_NORMAL]
+                    if CONF_ICON_NORMAL in self.config_entry.data
+                    else DEFAULT_ICON_NORMAL,
+                ): selector.IconSelector(selector.IconSelectorConfig()),
+                vol.Required(
+                    CONF_ICON_TODAY,
+                    default=self.config_entry.data[CONF_ICON_TODAY]
+                    if CONF_ICON_TODAY in self.config_entry.data
+                    else DEFAULT_ICON_TODAY,
+                ): selector.IconSelector(selector.IconSelectorConfig()),
+                vol.Required(
+                    CONF_SOON,
+                    default=self.config_entry.data[CONF_SOON]
+                    if CONF_SOON in self.config_entry.data
+                    else DEFAULT_SOON,
+                ): int,
+                vol.Required(
+                    CONF_ICON_SOON,
+                    default=self.config_entry.data[CONF_ICON_SOON]
+                    if CONF_ICON_SOON in self.config_entry.data
+                    else DEFAULT_ICON_SOON,
+                ): selector.IconSelector(selector.IconSelectorConfig()),
+                vol.Required(
+                    CONF_DATE_FORMAT,
+                    default=self.config_entry.data[CONF_DATE_FORMAT]
+                    if CONF_DATE_FORMAT in self.config_entry.data
+                    else DEFAULT_DATE_FORMAT,
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=DATE_FORMAT_OPTIONS,
+                        multiple=False,
+                        custom_value=True,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
                 ),
-                vol.Required(CONF_ICON_TODAY): selector.IconSelector(
-                    selector.IconSelectorConfig(placeholder=DEFAULT_ICON_TODAY)
-                ),
-                vol.Required(CONF_SOON, default=DEFAULT_SOON): int,
-                vol.Required(CONF_ICON_SOON): selector.IconSelector(
-                    selector.IconSelectorConfig(placeholder=DEFAULT_ICON_SOON)
-                ),
-                vol.Required(CONF_DATE_FORMAT, default=DEFAULT_DATE_FORMAT): str,
-                # vol.Optional(
-                #    CONF_MAP_PROVIDER,
-                #    default=DEFAULT_MAP_PROVIDER,
-                #    description={
-                #        "suggested_value": self.config_entry.data[CONF_MAP_PROVIDER]
-                #        if CONF_MAP_PROVIDER in self.config_entry.data
-                #        else DEFAULT_MAP_PROVIDER
-                #    },
-                # ): selector.SelectSelector(
-                #    selector.SelectSelectorConfig(
-                #        options=MAP_PROVIDER_OPTIONS,
-                #        multiple=False,
-                #        custom_value=False,
-                #        mode=selector.SelectSelectorMode.DROPDOWN,
-                #    )
-                # ),
             }
         )
-        _LOGGER.debug("[Options Update] initial config: " + str(self.config_entry.data))
+        # _LOGGER.debug("[Options Update] initial self._data: " + str(self._data))
+        _LOGGER.debug(
+            "[Options Update] initial self.config_entry.data: "
+            + str(self.config_entry.data)
+        )
 
         return self.async_show_form(
             step_id="init",
