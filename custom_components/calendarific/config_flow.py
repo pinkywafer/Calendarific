@@ -43,6 +43,9 @@ DATE_FORMAT_OPTIONS = [
     selector.SelectOptionDict(
         value="%B %-d, %Y", label="December 30, 2000 (%B %-d, %Y)"
     ),
+    selector.SelectOptionDict(
+        value="%A, %B %-d, %Y", label="Saturday, December 30, 2000 (%A, %B %-d, %Y)"
+    ),
 ]
 _LOGGER = logging.getLogger(__name__)
 
