@@ -1,4 +1,5 @@
 {
+    "title": "Calendarific",
     "config": {
         "abort": {
             "no_holidays_found": "No holidays found.  Ensure that you have configured Calendarific with a valid country and api key. [Please read the instructions](https://github.com/pinkywafer/Calendarific)."
@@ -18,6 +19,25 @@
                     "icon_soon": "Icon when holiday is soon",
                     "date_format": "Date format (see http://strftime.org/)"
                 }
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Calendarific",
+                "description": "Enter the sensor name and configure sensor parameters. More info on https://github.com/pinkywafer/Calendarific",
+                "data": {
+                    "name": "Friendly name",
+                    "holiday": "Holiday",
+                    "unit_of_measurement": "Text for unit_of_measurement",
+                    "icon_normal": "Icon",
+                    "icon_today": "Icon when holiday is today",
+                    "days_as_soon": "Number of Days to consider soon",
+                    "icon_soon": "Icon when holiday is soon",
+                    "date_format": "Date format (see http://strftime.org/)"
+                },
+                "description": "Update existing sensor"
             }
         }
     }
