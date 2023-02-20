@@ -3,10 +3,8 @@
         "abort": {
             "no_holidays_found": "No holidays found.  Ensure that you have configured Calendarific with a valid country and api key. [Please read the instructions](https://github.com/pinkywafer/Calendarific)."
         },
-        "title": "Calendarific",
         "step": {
             "user": {
-                "title": "Calendarific",
                 "description": "Enter the sensor name and configure sensor parameters. More info on https://github.com/pinkywafer/Calendarific",
                 "data": {
                     "name": "Friendly name (Leave blank to use holiday name)",
