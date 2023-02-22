@@ -111,7 +111,6 @@ class calendarific(Entity):
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
-        #_LOGGER.debug("ESA %s Attr Date: %s" % (self._name, str(self._attr_date)))
         return {
             ATTR_DATE: self._attr_date,
             ATTR_DESCRIPTION: self._description,
@@ -137,7 +136,6 @@ class calendarific(Entity):
             self.hass.data[DOMAIN][SENSOR_PLATFORM] = {}
         self.hass.data[DOMAIN][SENSOR_PLATFORM][self.entity_id] = self
 
-        #if not self.hidden:
         if CALENDAR_PLATFORM not in self.hass.data[DOMAIN]:
             self.hass.data[DOMAIN][
                 CALENDAR_PLATFORM
@@ -152,8 +150,6 @@ class calendarific(Entity):
                     {"name": CALENDAR_NAME},
                 )
             )
-        #else:
-            #_LOGGER.info("Calendarific calendar already exists")
         self.hass.data[DOMAIN][CALENDAR_PLATFORM].add_entity(self.entity_id)
 
     async def async_will_remove_from_hass(self):
@@ -162,21 +158,16 @@ class calendarific(Entity):
         _LOGGER.debug("Removing: %s" % (self._name))
         del self.hass.data[DOMAIN][SENSOR_PLATFORM][self.entity_id]
         self.hass.data[DOMAIN][CALENDAR_PLATFORM].remove_entity(self.entity_id)
-        #_LOGGER.debug("Remaining Calendar Entries: %s" % (self.hass.data[DOMAIN][CALENDAR_PLATFORM]))
 
     async def async_update(self):
         await self.hass.async_add_executor_job(self._reader.update)
-        #_LOGGER.debug("Update: %s" % (self._name))
         self._description = self._reader.get_description(self._holiday)
         self._date = self._reader.get_date(self._holiday)
-        #_LOGGER.debug("Sensor %s Date: %s" % (self._name, str(self._date)))
         if self._date == "-":
             self._state = "unknown"
             self._attr_date = self._date
             return
         self._attr_date = datetime.strftime(self._date,self._date_format)
-        #_LOGGER.debug("Sensor %s Date Format: %s" % (self._name, str(self._date_format)))
-        #_LOGGER.debug("Sensor %s Attr Date: %s" % (self._name, str(self._attr_date)))
         today = date.today()
         daysRemaining = 0
         if today < self._date:
