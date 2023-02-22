@@ -1,32 +1,33 @@
-from __future__ import annotations
-
+""" config flow """
 import logging
 import uuid
 
 import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.const import CONF_NAME, CONF_UNIQUE_ID
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers import selector
 
-from . import holiday_list
+from collections import OrderedDict
+
 from .const import (
-    CONF_DATE_FORMAT,
-    CONF_HOLIDAY,
-    CONF_ICON_NORMAL,
-    CONF_ICON_SOON,
-    CONF_ICON_TODAY,
-    CONF_SOON,
-    CONF_UNIT_OF_MEASUREMENT,
-    DEFAULT_DATE_FORMAT,
+    DOMAIN,
     DEFAULT_ICON_NORMAL,
     DEFAULT_ICON_SOON,
     DEFAULT_ICON_TODAY,
+    DEFAULT_DATE_FORMAT,
     DEFAULT_SOON,
     DEFAULT_UNIT_OF_MEASUREMENT,
-    DOMAIN,
+    CONF_ICON_NORMAL,
+    CONF_ICON_TODAY,
+    CONF_ICON_SOON,
+    CONF_HOLIDAY,
+    CONF_DATE_FORMAT,
+    CONF_SOON,
+    CONF_UNIT_OF_MEASUREMENT,
 )
+
+from . import holiday_list
 
 COMPONENT_CONFIG_URL = (
     "https://github.com/pinkywafer/Calendarific#sensor-configuration-parameters"
@@ -50,11 +51,12 @@ DATE_FORMAT_OPTIONS = [
 
 _LOGGER = logging.getLogger(__name__)
 
-
 @callback
 def calendarific_entries(hass: HomeAssistant):
-    return set((entry.data) for entry in hass.config_entries.async_entries(DOMAIN))
-
+    return set(
+        (entry.data)
+        for entry in hass.config_entries.async_entries(DOMAIN)
+    )
 
 class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
