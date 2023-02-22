@@ -120,7 +120,7 @@ class EntitiesCalendarData:
                 event = CalendarEvent(
                     summary=entity.name,
                     start=entity._date,
-                    end=entity._date,
+                    end=entity._date + timedelta(days=1),
                     description=entity.extra_state_attributes["description"]
                     if "description" in entity.extra_state_attributes
                     else None,
@@ -140,7 +140,7 @@ class EntitiesCalendarData:
                 self.event = CalendarEvent(
                     summary=entity.name,
                     start=entity._date,
-                    end=entity._date,
+                    end=entity._date + timedelta(days=1),
                     description=entity.extra_state_attributes["description"]
                     if "description" in entity.extra_state_attributes
                     else None,
