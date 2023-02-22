@@ -25,5 +25,7 @@ DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 DEFAULT_SOON = 1
 DEFAULT_UNIT_OF_MEASUREMENT = "Days"
 
-
-
+#Calendar
+CALENDAR_NAME = "Calendarific"
+SENSOR_PLATFORM = "sensor"
+CALENDAR_PLATFORM = "calendar"

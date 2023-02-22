@@ -9,6 +9,8 @@ from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import CONF_NAME, ATTR_ATTRIBUTION
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.discovery import async_load_platform
+from .calendar import EntitiesCalendarData
 
 from .const import (
     ATTRIBUTION,
@@ -26,7 +28,12 @@ from .const import (
     CONF_HOLIDAY,
     CONF_UNIT_OF_MEASUREMENT,
     DOMAIN,
+    SENSOR_PLATFORM,
+    CALENDAR_PLATFORM,
+    CALENDAR_NAME,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 ATTR_DESCRIPTION = "description"
 ATTR_DATE = "date"
@@ -48,8 +55,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     """Setup the sensor platform."""
     if DOMAIN in hass.data:
         reader = hass.data[DOMAIN]['apiReader']
-        async_add_entities([calendarific(config, reader)],True)  
-     
+        async_add_entities([calendarific(config, reader)],True)
+
 async def async_setup_entry(hass, entry, async_add_entities):
     """Setup sensor platform."""
     if DOMAIN in hass.data:
@@ -90,7 +97,7 @@ class calendarific(Entity):
     def unique_id(self):
         """Return a unique ID to use for this sensor."""
         return self.config.get("unique_id", None)
-        
+
     @property
     def name(self):
         """Return the name of the sensor."""
@@ -98,10 +105,10 @@ class calendarific(Entity):
 
     @property
     def state(self):
-        """Return the name of the sensor."""
+        """Return the state of the sensor."""
         return self._state
 
-    @property 
+    @property
     def extra_state_attributes(self):
         """Return the state attributes."""
         return {
@@ -120,8 +127,37 @@ class calendarific(Entity):
         return self._icon
 
     async def async_added_to_hass(self):
-        """Once the entity is added we should update to get the initial data loaded."""
+        """Once the entity is added we should update to get the initial data loaded. Then add it to the Calendar."""
+        await super().async_added_to_hass()
         self.async_schedule_update_ha_state(True)
+        if DOMAIN not in self.hass.data:
+            self.hass.data[DOMAIN] = {}
+        if SENSOR_PLATFORM not in self.hass.data[DOMAIN]:
+            self.hass.data[DOMAIN][SENSOR_PLATFORM] = {}
+        self.hass.data[DOMAIN][SENSOR_PLATFORM][self.entity_id] = self
+
+        if CALENDAR_PLATFORM not in self.hass.data[DOMAIN]:
+            self.hass.data[DOMAIN][
+                CALENDAR_PLATFORM
+            ] = EntitiesCalendarData(self.hass)
+            _LOGGER.info("Creating Calendarific calendar")
+            self.hass.async_create_task(
+                async_load_platform(
+                    self.hass,
+                    CALENDAR_PLATFORM,
+                    DOMAIN,
+                    {"name": CALENDAR_NAME},
+                    {"name": CALENDAR_NAME},
+                )
+            )
+        self.hass.data[DOMAIN][CALENDAR_PLATFORM].add_entity(self.entity_id)
+
+    async def async_will_remove_from_hass(self):
+        """When sensor is removed from hassio and there are no other sensors in the Calendarific calendar, remove it."""
+        await super().async_will_remove_from_hass()
+        _LOGGER.debug("Removing: %s" % (self._name))
+        del self.hass.data[DOMAIN][SENSOR_PLATFORM][self.entity_id]
+        self.hass.data[DOMAIN][CALENDAR_PLATFORM].remove_entity(self.entity_id)
 
     async def async_update(self):
         await self.hass.async_add_executor_job(self._reader.update)
@@ -138,7 +174,7 @@ class calendarific(Entity):
             daysRemaining = (self._date - today).days
         elif today == self._date:
             daysRemaining = 0
-            
+
         if daysRemaining == 0:
             self._icon = self._icon_today
         elif daysRemaining <= self._soon:
