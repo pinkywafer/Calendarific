@@ -1,34 +1,34 @@
 """ Calendarific Sensor """
+from datetime import datetime, date
 import logging
-from datetime import date, datetime
 
-import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+
 from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import ATTR_ATTRIBUTION, CONF_NAME
+
+from homeassistant.const import CONF_NAME, ATTR_ATTRIBUTION
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.discovery import async_load_platform
-
 from .calendar import EntitiesCalendarData
-#from . import const
 
 from .const import (
     ATTRIBUTION,
-    CONF_DATE_FORMAT,
-    CONF_HOLIDAY,
-    CONF_ICON_NORMAL,
-    CONF_ICON_SOON,
-    CONF_ICON_TODAY,
-    CONF_SOON,
-    CONF_UNIT_OF_MEASUREMENT,
-    SENSOR_PLATFORM,
-    DEFAULT_DATE_FORMAT,
-    DEFAULT_ICON_NORMAL,
-    DEFAULT_ICON_SOON,
-    DEFAULT_ICON_TODAY,
     DEFAULT_SOON,
+    DEFAULT_ICON_SOON,
+    DEFAULT_ICON_NORMAL,
+    DEFAULT_ICON_TODAY,
+    DEFAULT_DATE_FORMAT,
     DEFAULT_UNIT_OF_MEASUREMENT,
+    CONF_ICON_NORMAL,
+    CONF_ICON_TODAY,
+    CONF_ICON_SOON,
+    CONF_DATE_FORMAT,
+    CONF_SOON,
+    CONF_HOLIDAY,
+    CONF_UNIT_OF_MEASUREMENT,
     DOMAIN,
+    SENSOR_PLATFORM,
     CALENDAR_PLATFORM,
     CALENDAR_NAME,
 )
@@ -41,33 +41,28 @@ ATTR_DATE = "date"
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_HOLIDAY): cv.string,
-        vol.Optional(CONF_NAME, default=""): cv.string,
+        vol.Optional(CONF_NAME, default=''): cv.string,
         vol.Optional(CONF_SOON, default=DEFAULT_SOON): cv.positive_int,
         vol.Optional(CONF_ICON_NORMAL, default=DEFAULT_ICON_NORMAL): cv.icon,
         vol.Optional(CONF_ICON_TODAY, default=DEFAULT_ICON_TODAY): cv.icon,
         vol.Optional(CONF_ICON_SOON, default=DEFAULT_ICON_SOON): cv.icon,
         vol.Optional(CONF_DATE_FORMAT, default=DEFAULT_DATE_FORMAT): cv.string,
-        vol.Optional(
-            CONF_UNIT_OF_MEASUREMENT, default=DEFAULT_UNIT_OF_MEASUREMENT
-        ): cv.string,
+        vol.Optional(CONF_UNIT_OF_MEASUREMENT, default=DEFAULT_UNIT_OF_MEASUREMENT): cv.string,
     }
 )
-
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Setup the sensor platform."""
     if DOMAIN in hass.data:
-        reader = hass.data[DOMAIN]["apiReader"]
-        async_add_entities([calendarific(config, reader)], True)
-
+        reader = hass.data[DOMAIN]['apiReader']
+        async_add_entities([calendarific(config, reader)],True)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Setup sensor platform."""
     if DOMAIN in hass.data:
-        reader = hass.data[DOMAIN]["apiReader"]
+        reader = hass.data[DOMAIN]['apiReader']
         async_add_entities(
-            [calendarific(entry.data, reader)],
-            False,
+            [calendarific(entry.data, reader)], False,
         )
     return True
 
@@ -78,7 +73,7 @@ class calendarific(Entity):
         self.config = config
         self._holiday = config.get(CONF_HOLIDAY)
         self._name = config.get(CONF_NAME)
-        if self._name == "":
+        if self._name == '':
             self._name = self._holiday
         self._icon_normal = config.get(CONF_ICON_NORMAL)
         self._icon_today = config.get(CONF_ICON_TODAY)
@@ -95,7 +90,7 @@ class calendarific(Entity):
         if self._date == "-":
             self._attr_date = self._date
         else:
-            self._attr_date = datetime.strftime(self._date, self._date_format)
+            self._attr_date = datetime.strftime(self._date,self._date_format)
         self._state = "unknown"
 
     @property
