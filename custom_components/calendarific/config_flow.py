@@ -36,20 +36,20 @@ COMPONENT_CONFIG_URL = (
 )
 SOON_MIN = 0
 SOON_MAX = 364
-DATE_FORMAT_OPTIONS = [
-    selector.SelectOptionDict(
-        value=DEFAULT_DATE_FORMAT, label="2000-12-30 (" + DEFAULT_DATE_FORMAT + ")"
-    ),
-    selector.SelectOptionDict(
-        value="%x", label="Locale’s appropriate date [12/30/00] (%x)"
-    ),
-    selector.SelectOptionDict(
-        value="%B %-d, %Y", label="December 30, 2000 (%B %-d, %Y)"
-    ),
-    selector.SelectOptionDict(
-        value="%A, %B %-d, %Y", label="Saturday, December 30, 2000 (%A, %B %-d, %Y)"
-    ),
-]
+#DATE_FORMAT_OPTIONS = [
+#    selector.SelectOptionDict(
+#        value=DEFAULT_DATE_FORMAT, label="2000-12-30 (" + DEFAULT_DATE_FORMAT + ")"
+#    ),
+#    selector.SelectOptionDict(
+#        value="%x", label="Locale’s appropriate date [12/30/00] (%x)"
+#    ),
+#    selector.SelectOptionDict(
+#        value="%B %-d, %Y", label="December 30, 2000 (%B %-d, %Y)"
+#    ),
+#    selector.SelectOptionDict(
+#        value="%A, %B %-d, %Y", label="Saturday, December 30, 2000 (%A, %B %-d, %Y)"
+#    ),
+#]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -104,17 +104,17 @@ class CalendarificConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_ICON_SOON,
                     default=DEFAULT_ICON_SOON,
                 ): selector.IconSelector(selector.IconSelectorConfig()),
-                vol.Required(
-                    CONF_DATE_FORMAT,
-                    default=DEFAULT_DATE_FORMAT,
-                ): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=DATE_FORMAT_OPTIONS,
-                        multiple=False,
-                        custom_value=True,
-                        mode=selector.SelectSelectorMode.DROPDOWN,
-                    )
-                ),
+                #vol.Required(
+                #    CONF_DATE_FORMAT,
+                #    default=DEFAULT_DATE_FORMAT,
+                #): selector.SelectSelector(
+                #    selector.SelectSelectorConfig(
+                #        options=DATE_FORMAT_OPTIONS,
+                #        multiple=False,
+                #        custom_value=True,
+                #        mode=selector.SelectSelectorMode.DROPDOWN,
+                #    )
+                #),
             }
         )
         return self.async_show_form(
@@ -213,19 +213,19 @@ class CalendarificOptionsFlowHandler(config_entries.OptionsFlow):
                     if CONF_ICON_SOON in self.config_entry.data
                     else DEFAULT_ICON_SOON,
                 ): selector.IconSelector(selector.IconSelectorConfig()),
-                vol.Required(
-                    CONF_DATE_FORMAT,
-                    default=self.config_entry.data[CONF_DATE_FORMAT]
-                    if CONF_DATE_FORMAT in self.config_entry.data
-                    else DEFAULT_DATE_FORMAT,
-                ): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=DATE_FORMAT_OPTIONS,
-                        multiple=False,
-                        custom_value=True,
-                        mode=selector.SelectSelectorMode.DROPDOWN,
-                    )
-                ),
+                #vol.Required(
+                #    CONF_DATE_FORMAT,
+                #    default=self.config_entry.data[CONF_DATE_FORMAT]
+                #    if CONF_DATE_FORMAT in self.config_entry.data
+                #    else DEFAULT_DATE_FORMAT,
+                #): selector.SelectSelector(
+                #    selector.SelectSelectorConfig(
+                #        options=DATE_FORMAT_OPTIONS,
+                #        multiple=False,
+                #        custom_value=True,
+                #        mode=selector.SelectSelectorMode.DROPDOWN,
+                #    )
+                #),
             }
         )
         # _LOGGER.debug(
