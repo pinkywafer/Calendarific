@@ -1,14 +1,14 @@
 {
   "domain": "calendarific",
   "name": "Calendarific",
-  "version": "0.0.0",
-  "iot_class": "cloud_polling",
-  "documentation": "https://github.com/pinkywafer/Calendarific",
-  "dependencies": [],
-  "config_flow": true,
   "codeowners": ["@pinkywafer"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/pinkywafer/Calendarific",
+  "iot_class": "cloud_polling",
   "requirements": [
     "sampleclient",
     "integrationhelper"
-  ]
+  ],
+  "version": "0.0.0"
 }
