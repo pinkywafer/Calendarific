@@ -9,7 +9,7 @@ jobs:
     name: Prepare release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: "Set version numbmer"
         run: |
           sed -i '/VERSION = /c\VERSION = "${{ github.ref }}"' custom_components/calendarific/const.py
